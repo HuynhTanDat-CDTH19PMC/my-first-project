@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:english_words/english_words.dart';
 
 void main() {
   runApp(const FbApp());
@@ -31,7 +32,7 @@ class SignInRoute extends StatelessWidget {
     final _controllerEmail = TextEditingController();
     final _controllerPassword = TextEditingController();
 
-    Widget Input = Container(
+    Widget _input = Container(
       padding: EdgeInsets.only(left: 20, right: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -88,7 +89,7 @@ class SignInRoute extends StatelessWidget {
       ),
     );
 
-    Widget bottom = Column(
+    Widget _bottom = Column(
       children: [
         Container(
           padding: const EdgeInsets.only(bottom: 30),
@@ -111,7 +112,7 @@ class SignInRoute extends StatelessWidget {
       backgroundColor: Colors.blueAccent,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [Expanded(child: Input), bottom],
+        children: [Expanded(child: _input), _bottom],
       ),
     );
   }
@@ -123,9 +124,51 @@ class HomePageRoute extends StatefulWidget {
 }
 
 class _HomePageRouteState extends State<HomePageRoute> {
+  final _listUser = <WordPair>[];
+
+  Widget _buildHomeScreen() {
+    return ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemBuilder: /*1*/ (context, i) {
+          if (i.isOdd) return const Divider(); /*2*/
+
+          final index = i ~/ 2; /*3*/
+          if (index >= _listUser.length) {
+            _listUser.addAll(generateWordPairs().take(10)); /*4*/
+          }
+          return _buildPost(_listUser[index]);
+        });
+  }
+
+  Widget _buildPost(WordPair pair) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              height: 20,
+              width: 20,
+              decoration: const BoxDecoration(
+                  shape: BoxShape.circle, color: Colors.white),
+              child: Image.asset(
+                'images/user.jpg',
+                fit: BoxFit.cover,
+              ),
+              padding: const EdgeInsets.all(5),
+            ),
+            Text(
+              pair.asLowerCase,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            )
+          ],
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget drawer = Drawer(
+    Widget _drawer = Drawer(
       child: ListView(
         children: [
           ListTile(
@@ -167,10 +210,10 @@ class _HomePageRouteState extends State<HomePageRoute> {
             ),
             body: TabBarView(
               children: [
-                Text('Icon home'),
-                Text('Icon friend'),
-                Text('Icon notification'),
-                drawer
+                _buildHomeScreen(),
+                const Text('Icon friend'),
+                const Text('Icon notification'),
+                _drawer
               ],
             )));
   }
