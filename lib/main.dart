@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -125,13 +127,14 @@ class HomePageRoute extends StatefulWidget {
 
 class _HomePageRouteState extends State<HomePageRoute> {
   final _listUser = <WordPair>[];
+  final _saved = <WordPair>[];
+  final _countLove = 0;
 
   Widget _buildHomeScreen() {
     return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         itemBuilder: /*1*/ (context, i) {
           if (i.isOdd) return const Divider(); /*2*/
-
           final index = i ~/ 2; /*3*/
           if (index >= _listUser.length) {
             _listUser.addAll(generateWordPairs().take(10)); /*4*/
@@ -141,34 +144,153 @@ class _HomePageRouteState extends State<HomePageRoute> {
   }
 
   Widget _buildPost(WordPair pair) {
-    return Column(
+    final alreadySaved = _saved.contains(pair);
+
+    Widget title = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              height: 20,
-              width: 20,
-              decoration: const BoxDecoration(
-                  shape: BoxShape.circle, color: Colors.white),
-              child: Image.asset(
-                'images/user.jpg',
-                fit: BoxFit.cover,
+        Container(
+          child: Row(
+            children: [
+              Container(
+                height: 40,
+                width: 40,
+                decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: AssetImage('images/user.jpg'))),
               ),
-              padding: const EdgeInsets.all(5),
-            ),
-            Text(
-              pair.asLowerCase,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            )
-          ],
-        )
+              Container(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Text(
+                        pair.asPascalCase,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const Text(
+                      '1 giờ trước',
+                      style: TextStyle(fontSize: 10),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz))
       ],
+    );
+
+    Widget content = Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      child: const Text(
+        'Home: Chứa danh sách bài viết (không yêu cầu bình luận), 1 bài viết gồm '
+        '(icon người dùng, Tên người dùng, thời gian, hình đại diện, nồi dung tóm '
+        'tắt, nút xem tiếp, (emotion: like, love, …)',
+        softWrap: true,
+      ),
+    );
+
+    Widget countLove = Row(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(right: 5),
+          child: const Icon(
+            Icons.favorite,
+            color: Colors.red,
+            size: 14,
+          ),
+        ),
+        Text(alreadySaved ? (_countLove + 1).toString() : _countLove.toString())
+      ],
+    );
+
+    Widget comment = Container(
+      child: Column(
+        children: [
+          Divider(
+            color: Colors.grey[400],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          if (alreadySaved) {
+                            _saved.remove(pair);
+                          } else {
+                            _saved.add(pair);
+                          }
+                        });
+                      },
+                      icon: Icon(
+                        alreadySaved ? Icons.favorite : Icons.favorite_border,
+                        color: alreadySaved ? Colors.red : null,
+                      ),
+                    ),
+                    Text('Thích')
+                  ],
+                ),
+              ),
+              Container(
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.chat_outlined),
+                    ),
+                    const Text('Bình luận')
+                  ],
+                ),
+              ),
+              Container(
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.share_outlined),
+                    ),
+                    const Text('Chia sẻ')
+                  ],
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [title, content, countLove],
+            ),
+          ),
+          comment
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget _drawer = Drawer(
+    Widget drawer = Drawer(
       child: ListView(
         children: [
           ListTile(
@@ -190,14 +312,15 @@ class _HomePageRouteState extends State<HomePageRoute> {
     return DefaultTabController(
         length: 4,
         child: Scaffold(
+            backgroundColor: Colors.grey[400],
             appBar: AppBar(
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: Colors.blue,
               title: const Text(
                 'facebook',
                 style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue),
+                    color: Colors.white),
               ),
               bottom: const TabBar(
                 tabs: [
@@ -213,7 +336,7 @@ class _HomePageRouteState extends State<HomePageRoute> {
                 _buildHomeScreen(),
                 const Text('Icon friend'),
                 const Text('Icon notification'),
-                _drawer
+                drawer
               ],
             )));
   }
