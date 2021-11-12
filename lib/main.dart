@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
@@ -21,7 +22,7 @@ class FbApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => SignInRoute(),
-        '/Homepage': (context) => HomePageRoute()
+        '/Homepage': (context) => MainRoute()
       },
     );
   }
@@ -120,71 +121,117 @@ class SignInRoute extends StatelessWidget {
   }
 }
 
-class HomePageRoute extends StatefulWidget {
+class MainRoute extends StatefulWidget {
   @override
-  State<HomePageRoute> createState() => _HomePageRouteState();
+  State<MainRoute> createState() => _MainRouteState();
 }
 
-class _HomePageRouteState extends State<HomePageRoute> {
-  final _listUser = <WordPair>[];
-  final _saved = <WordPair>[];
-  final _countLove = 0;
-
-  Widget _buildHomeScreen() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(12.0),
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return const Divider(); /*2*/
-          final index = i ~/ 2; /*3*/
-          if (index >= _listUser.length) {
-            _listUser.addAll(generateWordPairs().take(10)); /*4*/
-          }
-          return _buildPost(_listUser[index]);
+class _MainRouteState extends State<MainRoute> {
+  Widget _buildListTitle(String text, IconData icon, Function ontap) {
+    return ListTile(
+        contentPadding: EdgeInsets.all(10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.only(right: 8),
+              child: Icon(icon),
+            ),
+            Text(text),
+          ],
+        ),
+        onTap: () {
+          ontap;
         });
   }
 
-  Widget _buildPost(WordPair pair) {
+  void _profile() {}
+  void _security() {}
+  void _signout() {}
+
+  @override
+  Widget build(BuildContext context) {
+    Widget drawer = Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    height: 50,
+                    width: 50,
+                    decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: AssetImage('images/user.jpg'))),
+                  ),
+                  const Text(
+                    'Huỳnh Tấn Đạt',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  )
+                ],
+              )),
+          _buildListTitle(
+              'Profile', Icons.supervised_user_circle_outlined, _profile),
+          _buildListTitle('Security', Icons.security_sharp, _security),
+          _buildListTitle('Sign out', Icons.exit_to_app, _signout)
+        ],
+      ),
+    );
+    return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.blue,
+            title: const Text(
+              'facebook',
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
+            ),
+            bottom: const TabBar(
+              tabs: [
+                Icon(Icons.home),
+                Icon(Icons.people_alt),
+                Icon(Icons.notifications),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              HomePage(),
+              FriendPage(),
+              const Text('Icon notification'),
+            ],
+          ),
+          drawer: drawer,
+        ));
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _listUser = <WordPair>[];
+  final _saved = <WordPair>[];
+  final _countLove = 0;
+  var random = new Random();
+
+  Widget _buildPostHomeScreen(WordPair pair) {
     final alreadySaved = _saved.contains(pair);
 
     Widget title = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          child: Row(
-            children: [
-              Container(
-                height: 40,
-                width: 40,
-                decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: AssetImage('images/user.jpg'))),
-              ),
-              Container(
-                padding: const EdgeInsets.only(left: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: Text(
-                        pair.asPascalCase,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const Text(
-                      '1 giờ trước',
-                      style: TextStyle(fontSize: 10),
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        _buildUser(pair, random.nextInt(24).toString() + ' giờ trước'),
         IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz))
       ],
     );
@@ -290,54 +337,90 @@ class _HomePageRouteState extends State<HomePageRoute> {
 
   @override
   Widget build(BuildContext context) {
-    Widget drawer = Drawer(
-      child: ListView(
-        children: [
-          ListTile(
-            title: Text('Profile'),
-            onTap: () {},
-          ),
-          ListTile(
-            title: Text('Security'),
-            onTap: () {},
-          ),
-          ListTile(
-            title: Text('Sign out'),
-            onTap: () {},
-          )
-        ],
-      ),
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      body: ListView.builder(
+          padding: const EdgeInsets.all(12.0),
+          itemBuilder: /*1*/ (context, i) {
+            if (i.isOdd) return const Divider(); /*2*/
+            final index = i ~/ 2; /*3*/
+            if (index >= _listUser.length) {
+              _listUser.addAll(generateWordPairs().take(10)); /*4*/
+            }
+            return _buildPostHomeScreen(_listUser[index]);
+          }),
     );
-
-    return DefaultTabController(
-        length: 4,
-        child: Scaffold(
-            backgroundColor: Colors.grey[400],
-            appBar: AppBar(
-              backgroundColor: Colors.blue,
-              title: const Text(
-                'facebook',
-                style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              bottom: const TabBar(
-                tabs: [
-                  Icon(Icons.home),
-                  Icon(Icons.people_alt),
-                  Icon(Icons.notifications),
-                  Icon(Icons.menu)
-                ],
-              ),
-            ),
-            body: TabBarView(
-              children: [
-                _buildHomeScreen(),
-                const Text('Icon friend'),
-                const Text('Icon notification'),
-                drawer
-              ],
-            )));
   }
+}
+
+class FriendPage extends StatefulWidget {
+  @override
+  State<FriendPage> createState() => _FriendPageState();
+}
+
+class _FriendPageState extends State<FriendPage> {
+  final _listFriend = <WordPair>[];
+  var random = new Random();
+
+  Widget _buildListFriend(WordPair pair) {
+    return ListTile(
+      title: _buildUser(pair, random.nextInt(100).toString() + ' bạn chung'),
+      trailing:
+          ElevatedButton(onPressed: () {}, child: const Text('Hủy kết bạn')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ListView.builder(
+          padding: const EdgeInsets.all(12.0),
+          itemBuilder: /*1*/ (context, i) {
+            if (i.isOdd) return const Divider(); /*2*/
+            final index = i ~/ 2; /*3*/
+            if (index >= _listFriend.length) {
+              _listFriend.addAll(generateWordPairs().take(10)); /*4*/
+            }
+            return _buildListFriend(_listFriend[index]);
+          }),
+    );
+  }
+}
+
+Widget _buildUser(WordPair pair, String text) {
+  return Container(
+    child: Row(
+      children: [
+        Container(
+          height: 40,
+          width: 40,
+          decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                  fit: BoxFit.cover, image: AssetImage('images/user.jpg'))),
+        ),
+        Container(
+          padding: const EdgeInsets.only(left: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Text(
+                  pair.asPascalCase,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Text(
+                text,
+                style: TextStyle(fontSize: 10),
+              )
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
