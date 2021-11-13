@@ -18,11 +18,14 @@ class FbApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'RobotoMono',
       ),
       initialRoute: '/',
       routes: {
         '/': (context) => SignInRoute(),
-        '/Homepage': (context) => MainRoute()
+        '/Mainpage': (context) => MainRoute(),
+        '/Profile': (context) => Profile(),
+        '/Security': (context) => Security()
       },
     );
   }
@@ -75,7 +78,7 @@ class SignInRoute extends StatelessWidget {
             child: OutlinedButton(
                 onPressed: () {
                   if (_controllerPassword.text == _controllerEmail.text) {
-                    Navigator.pushNamed(context, '/Homepage');
+                    Navigator.pushNamed(context, '/Mainpage');
                     return;
                   }
                 },
@@ -127,7 +130,7 @@ class MainRoute extends StatefulWidget {
 }
 
 class _MainRouteState extends State<MainRoute> {
-  Widget _buildListTitle(String text, IconData icon, Function ontap) {
+  Widget _buildListTitle(String text, IconData icon, String routeName) {
     return ListTile(
         contentPadding: EdgeInsets.all(10),
         title: Row(
@@ -140,13 +143,9 @@ class _MainRouteState extends State<MainRoute> {
           ],
         ),
         onTap: () {
-          ontap;
+          Navigator.pushNamed(context, routeName);
         });
   }
-
-  void _profile() {}
-  void _security() {}
-  void _signout() {}
 
   @override
   Widget build(BuildContext context) {
@@ -176,9 +175,9 @@ class _MainRouteState extends State<MainRoute> {
                 ],
               )),
           _buildListTitle(
-              'Profile', Icons.supervised_user_circle_outlined, _profile),
-          _buildListTitle('Security', Icons.security_sharp, _security),
-          _buildListTitle('Sign out', Icons.exit_to_app, _signout)
+              'Profile', Icons.supervised_user_circle_outlined, '/Profile'),
+          _buildListTitle('Security', Icons.security_sharp, '/Security'),
+          _buildListTitle('Sign out', Icons.exit_to_app, '/')
         ],
       ),
     );
@@ -206,7 +205,7 @@ class _MainRouteState extends State<MainRoute> {
             children: [
               HomePage(),
               FriendPage(),
-              const Text('Icon notification'),
+              NotificationPage(),
             ],
           ),
           drawer: drawer,
@@ -338,18 +337,24 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: ListView.builder(
-          padding: const EdgeInsets.all(12.0),
-          itemBuilder: /*1*/ (context, i) {
-            if (i.isOdd) return const Divider(); /*2*/
-            final index = i ~/ 2; /*3*/
-            if (index >= _listUser.length) {
-              _listUser.addAll(generateWordPairs().take(10)); /*4*/
-            }
-            return _buildPostHomeScreen(_listUser[index]);
-          }),
-    );
+        backgroundColor: Colors.grey[100],
+        body: Column(
+          children: [
+            _buildtitle('Bảng tin'),
+            Expanded(
+              child: ListView.builder(
+                  padding: const EdgeInsets.all(12.0),
+                  itemBuilder: /*1*/ (context, i) {
+                    if (i.isOdd) return const Divider(); /*2*/
+                    final index = i ~/ 2; /*3*/
+                    if (index >= _listUser.length) {
+                      _listUser.addAll(generateWordPairs().take(10)); /*4*/
+                    }
+                    return _buildPostHomeScreen(_listUser[index]);
+                  }),
+            )
+          ],
+        ));
   }
 }
 
@@ -360,30 +365,265 @@ class FriendPage extends StatefulWidget {
 
 class _FriendPageState extends State<FriendPage> {
   final _listFriend = <WordPair>[];
+  final _saved = <WordPair>[];
   var random = new Random();
 
   Widget _buildListFriend(WordPair pair) {
+    final alreadySaved = _saved.contains(pair);
     return ListTile(
       title: _buildUser(pair, random.nextInt(100).toString() + ' bạn chung'),
-      trailing:
-          ElevatedButton(onPressed: () {}, child: const Text('Hủy kết bạn')),
+      trailing: ElevatedButton(
+          onPressed: () {
+            setState(() {
+              if (alreadySaved) {
+                _saved.remove(pair);
+              } else {
+                _saved.add(pair);
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+              primary: alreadySaved ? Colors.blue : Colors.grey),
+          child: Text(
+            alreadySaved ? 'Kết bạn' : 'Hủy kết bạn',
+          )),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-          padding: const EdgeInsets.all(12.0),
-          itemBuilder: /*1*/ (context, i) {
-            if (i.isOdd) return const Divider(); /*2*/
-            final index = i ~/ 2; /*3*/
-            if (index >= _listFriend.length) {
-              _listFriend.addAll(generateWordPairs().take(10)); /*4*/
-            }
-            return _buildListFriend(_listFriend[index]);
-          }),
+        body: Column(
+      children: [
+        _buildtitle('Danh sách bạn bè'),
+        Expanded(
+          child: ListView.builder(
+              padding: const EdgeInsets.all(12.0),
+              itemBuilder: /*1*/ (context, i) {
+                if (i.isOdd) return const Divider(); /*2*/
+                final index = i ~/ 2; /*3*/
+                if (index >= _listFriend.length) {
+                  _listFriend.addAll(generateWordPairs().take(10)); /*4*/
+                }
+                return _buildListFriend(_listFriend[index]);
+              }),
+        )
+      ],
+    ));
+  }
+}
+
+class NotificationPage extends StatelessWidget {
+  final _listNotified = <WordPair>[];
+  var random = new Random();
+
+  Widget _buildListNotified(WordPair pair) {
+    return ListTile(
+      title: Container(
+        child: Row(
+          children: [
+            Container(
+              height: 40,
+              width: 40,
+              decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      fit: BoxFit.cover, image: AssetImage('images/user.jpg'))),
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      children: [
+                        Text(
+                          pair.asPascalCase,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        const Text(' đã thích bài viết của bạn')
+                      ],
+                    ),
+                  ),
+                  Text(
+                    random.nextInt(24).toString() + ' phút trước',
+                    style: const TextStyle(fontSize: 10),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      trailing: IconButton(
+          onPressed: () {}, icon: const Icon(Icons.more_horiz_outlined)),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Column(
+      children: [
+        _buildtitle('Thông báo'),
+        Expanded(
+          child: ListView.builder(
+              padding: const EdgeInsets.all(12.0),
+              itemBuilder: /*1*/ (context, i) {
+                if (i.isOdd) return const Divider(); /*2*/
+                final index = i ~/ 2; /*3*/
+                if (index >= _listNotified.length) {
+                  _listNotified.addAll(generateWordPairs().take(10)); /*4*/
+                }
+                return _buildListNotified(_listNotified[index]);
+              }),
+        )
+      ],
+    ));
+  }
+}
+
+class Profile extends StatelessWidget {
+  Widget _buildRowProfile(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(40, 16, 0, 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.only(right: 5),
+            child: Icon(
+              icon,
+              color: Colors.blueAccent,
+            ),
+          ),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 200,
+        automaticallyImplyLeading: false,
+        title: Center(
+          child: Container(
+            height: 150,
+            width: 150,
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                    image: AssetImage('images/user.jpg'), fit: BoxFit.cover)),
+          ),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildRowProfile(Icons.person, 'Họ và tên: Huỳnh Tấn Đạt'),
+            _buildRowProfile(Icons.today, 'Ngày sinh: 08/02/1997'),
+            _buildRowProfile(Icons.wc, 'Giới tính: Nam'),
+            _buildRowProfile(
+                Icons.room, 'Địa chỉ: 23/6 đường số 2, Trường Thọ, Thủ Đức'),
+            _buildRowProfile(Icons.mail, 'Email: 0306191207@caothang.edu'),
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Back'))
+          ],
+        ),
+      ),
+      floatingActionButton: IconButton(
+        icon: const Icon(
+          Icons.edit,
+          color: Colors.blueAccent,
+        ),
+        onPressed: () {},
+      ),
+    );
+  }
+}
+
+class Security extends StatelessWidget {
+  Widget _titlePolicy(String text) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Text(
+        text,
+        style: const TextStyle(
+            fontSize: 15, color: Colors.black, fontWeight: FontWeight.bold),
+        softWrap: true,
+      ),
+    );
+  }
+
+  Widget _contentPolicy(String text) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(25, 0, 20, 16),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 15, color: Colors.black),
+        softWrap: true,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Chính sách'),
+        ),
+        body: ListView(padding: const EdgeInsets.all(16), children: [
+          const Text(
+            'Chúng tôi thu thập những loại thông tin nào? ',
+            style: TextStyle(fontSize: 20, color: Colors.blue),
+          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _titlePolicy(
+                'Những hoạt động và thông tin do bạn và người khác thực hiện/cung cấp.'),
+            _contentPolicy(
+                'Thông tin và nội dung bạn cung cấp. Chúng tôi thu thập nội dung'
+                'thông tin liên lạc và các thông tin khác mà bạn cung cấp khi sử dụng.'
+                'Sản phẩm của chúng tôi, bao gồm cả khi bạn đăng ký một tài khoản,'
+                'tạo hoặc chia sẻ nội dung và nhắn tin hay liên lạc với người khác.'
+                'Các thông tin này có thể bao gồm thông tin trong hoặc về nội dung bạn'
+                'cung cấp (ví dụ siêu dữ liệu), chẳng hạn như địa điểm chụp ảnh hoặc ngày'
+                'tạo tệp. Thông tin này cũng có thể bao gồm nội dung bạn nhìn thấy thông'
+                'qua các tính năng chúng tôi cung cấp, chẳng hạn như tính năng máy ảnh,'
+                'để chúng tôi có thể thực hiện những việc như đề xuất mặt nạ và bộ lọc mà'
+                'bạn có thể thích hoặc cung cấp cho bạn mẹo sử dụng các định dạng của máy ảnh.'
+                'Các hệ thống của chúng tôi tự động xử lý nội dung cũng như thông tin liên'
+                'lạc mà bạn và người khác cung cấp để phân tích ngữ cảnh và ý nghĩa cho các'
+                'mục đích được mô tả bên dưới. Hãy tìm hiểu thêm về cách kiểm soát những '
+                ' ai có thể xem nội dung mà bạn chia sẻ.'),
+          ]),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _titlePolicy('Thông tin thiết bị'),
+            _contentPolicy(
+                'Như mô tả bên dưới, chúng tôi thu thập thông tin từ và về máy tính, điện thoại,'
+                'TV được kết nối cũng như các thiết bị kết nối web khác mà bạn sử dụng để tích'
+                ' hợp với Sản phẩm của chúng tôi. Chúng tôi cũng kết hợp thông tin này trên các'
+                'thiết bị khác nhau mà bạn sử dụng. Ví dụ: chúng tôi sử dụng thông tin thu thập '
+                'được về cách bạn sử dụng Sản phẩm của chúng tôi trên điện thoại để cá nhân hóa '
+                'tốt hơn nội dung (bao gồm quảng cáo) hoặc tính năng bạn thấy khi sử dụng Sản phẩm '
+                'của chúng tôi trên một thiết bị khác, chẳng hạn như máy tính xách tay/máy tính bảng,'
+                ' hoặc để đo lường xem bạn có thực hiện hành động đối với quảng cáo mà chúng tôi hiển '
+                'thị cho bạn trên điện thoại hay một thiết bị khác hay không.')
+          ])
+        ]));
   }
 }
 
@@ -421,6 +661,23 @@ Widget _buildUser(WordPair pair, String text) {
           ),
         ),
       ],
+    ),
+  );
+}
+
+Widget _buildtitle(String text) {
+  return Container(
+    height: 40,
+    width: double.infinity,
+    color: Colors.white,
+    padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+    child: Align(
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        style: const TextStyle(
+            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
     ),
   );
 }
